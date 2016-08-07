@@ -1,0 +1,64 @@
+NOTES
+
+There are reasons not to fuse a 'rup' view pattern into 'nargs'.
+
+  * The tuple of singleton records is significantly more legible than
+    a set of 'Has' constraints, especially if there are multiple
+    [nargs|...|] patterns.
+
+  * The caller can choose between '$@' and '$@$'.
+
+  * The type inference is more robust because of the monomorphism.
+
+-----
+
+I provided instances for singleton records of all the type classes
+that seemed likely to be useful for the domain of a function (e.g. for
+memoization).
+
+GHC DESIDERATA
+
+I tried to set infixr 0 :@ so that ("x" :@ a -> a) = ("x" :@ (a ->
+a)), but the fixity of -> seems to be infixr -1 even though :info says
+it's infixr 0. :(
+
+-----
+
+I tried to put {-# INLINE rup #-} on a default signature for 'rup',
+but GHC seemd to silently ignore that.
+
+-----
+
+An interesting objective to keep in mind is to obviate the need for a
+record type's constructor. For example:
+
+     rto @XY (dub #x 2,dub #y 3)
+
+is equivalent to
+
+    MkXY {
+      x = 2,
+      y = 3,
+      }
+
+and that's by design.
+
+-----
+
+A cheeky idea: commit 4240cc4
+
+   *> anr (#x True, #y())
+   (dub #x True,dub #y ())
+
+-----
+
+I considered recursive QQ patterns, but decided against it. See
+recursiveQQ branch.
+
+-----
+
+I considered adding a sugar to rna that denotes `asFieldTypesOf`, but
+I think it'd be too easily confused with the syntax for the
+typename. So you have to write this instead:
+
+    f ((`asFieldsTypesOf` hoidProxy @XY -> [rna|x y|]) = ...
